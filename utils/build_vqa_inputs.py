@@ -25,8 +25,8 @@ def vqa_processing(image_dir, annotation_file, question_file, valid_answer_set, 
     with open(question_file % image_set) as f:
         questions = json.load(f)['questions']
     coco_set_name = image_set.replace('-dev', '')
-    #abs_image_dir = os.path.abspath(image_dir % coco_set_name)
-    abs_image_dir = os.path.abspath(image_dir)
+    abs_image_dir = os.path.abspath(image_dir % coco_set_name)
+    #abs_image_dir = os.path.abspath(image_dir)
     #image_name_template = 'COCO_'+coco_set_name+'_%012d'
     image_name_template = 'abstract_v002_'+coco_set_name+'_%012d'
     dataset = [None]*len(questions)
