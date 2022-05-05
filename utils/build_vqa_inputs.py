@@ -68,7 +68,7 @@ def main(args):
     #image_dir = args.input_dir+'/Resized_Images/%s/'
     #annotation_file = args.input_dir+'/Annotations/v2_mscoco_%s_annotations.json'
     #question_file = args.input_dir+'/Questions/v2_OpenEnded_mscoco_%s_questions.json'
-    image_dir = args.input_dir+'/resized_images/train_images/'
+    image_dir = args.input_dir+'/resized_images/%s/'
     annotation_file = args.input_dir+'/Annotations/abstract_v002_%s_annotations.json'
     question_file = args.input_dir+'/Questions/OpenEnded_abstract_v002_%s_questions.json'
 
