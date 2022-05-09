@@ -1,8 +1,11 @@
+
 import torch
+from torch._C import device
 import torch.nn as nn
 import torchvision.models as models
+import numpy as np
 
-
+k=512
 class ImgEncoder(nn.Module):
 
     def __init__(self, embed_size):
@@ -31,7 +34,11 @@ class ImgEncoder(nn.Module):
 
         l2_norm = img_feature.norm(p=2, dim=1, keepdim=True).detach()
         img_feature = img_feature.div(l2_norm)               # l2-normalized feature vector
-
+        # (U, S, V) = torch.pca_lowrank(img_feature, q=None, center=True, niter=2)
+        # feature_reduced=torch.matmul(img_feature, V[:, :k])
+        # # print(np.linalg.matrix_rank(qst_feature.cpu().detach().numpy()))
+        # print(feature_reduced.shape)
+        # img_feature=feature_reduced
         return img_feature
 
 
@@ -56,7 +63,12 @@ class QstEncoder(nn.Module):
         qst_feature = qst_feature.reshape(qst_feature.size()[0], -1)  # [batch_size, 2*num_layers*hidden_size=2048]
         qst_feature = self.tanh(qst_feature)
         qst_feature = self.fc(qst_feature)                            # [batch_size, embed_size]
-
+        # (U, S, V) = torch.pca_lowrank(qst_feature, q=None, center=True, niter=2)
+        # feature_reduced=torch.matmul(qst_feature, V[:, :k])
+        # print(qst_feature.cpu().detach().numpy().shape)
+        # print(np.linalg.matrix_rank(qst_feature.cpu().detach().numpy()))
+        # print(feature_reduced.shape)
+        # qst_feature=feature_reduced
         return qst_feature
 
 
@@ -75,13 +87,42 @@ class VqaModel(nn.Module):
     def forward(self, img, qst):
 
         img_feature = self.img_encoder(img)                     # [batch_size, embed_size]
+        # print(img_feature.shape)
+        # (U, S, V) = torch.pca_lowrank(img_feature1, q = 10, center=True, niter=2)
+        (U, S, V) = torch.svd(img_feature)
+        # print('u', U.shape)
+        # print('s', S.shape)
+        # print('v' ,V.shape)
+        img_feature=torch.matmul(img_feature.T, V.T[:, :k])
+        img_feature=torch.matmul(V.T[:, :k], img_feature.T)
+        # U=U[:, :k]
+        # S=S[:k]
+        # img_feature=torch.mul(U, S)
+        # print(img_feature.shape)
+        # print('temp,', temp.shape)
+        # img_feature=torch.matmul(img_feature, V.T[:, :k])
+        # print('img', (img_feature1-img_feature).sum())
+        
         qst_feature = self.qst_encoder(qst)                     # [batch_size, embed_size]
+        # (U, S, V) = torch.pca_lowrank(qst_feature2, q=10, center=True, niter=2)
+        # qst_feature2=torch.nan_to_num(qst_feature2)
+        (U, S, V) = torch.svd(qst_feature)
+        # U=U[:, :k]
+        # S=S[:k]
+        qst_feature=torch.matmul(qst_feature.T, V.T[:, :k])
+        qst_feature=torch.matmul(V.T[:, :k], qst_feature.T)
+        # qst_feature=torch.mul(U, S)
+        # qst_feature=torch.matmul(qst_feature, V.T[:, :k])
+        # print('qst', (qst_feature2-qst_feature).sum())
+       
         combined_feature = torch.mul(img_feature, qst_feature)  # [batch_size, embed_size]
+        # combined_feature= torch.mul(combined_feature, 0)
         combined_feature = self.tanh(combined_feature)
         combined_feature = self.dropout(combined_feature)
         combined_feature = self.fc1(combined_feature)           # [batch_size, ans_vocab_size=1000]
         combined_feature = self.tanh(combined_feature)
         combined_feature = self.dropout(combined_feature)
         combined_feature = self.fc2(combined_feature)           # [batch_size, ans_vocab_size=1000]
-
+        # print('CSF', combined_feature.shape)
         return combined_feature
+
