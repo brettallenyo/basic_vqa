@@ -60,7 +60,7 @@ def vqa_processing(image_dir, annotation_file, question_file, valid_answer_set, 
             
         dataset[n_q] = iminfo
     print('total %d out of %d answers are <unk>' % (unk_ans_count, len(questions)))
-    return dataset
+    return dataset[:1000]
 
 
 def main(args):
