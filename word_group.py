@@ -2,8 +2,8 @@ import argparse
 import numpy as np
 from utils import text_helper
 
-def main(input_dirs):
-    qst_vocab = text_helper.VocabDict(input_dir+'/vocab_questions.txt')
+def main(args):
+    qst_vocab = text_helper.VocabDict(args.input_dir+'/vocab_questions.txt')
     
     print(qst_vocab)
 
