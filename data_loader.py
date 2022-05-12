@@ -33,13 +33,13 @@ class VqaDataset(data.Dataset):
         transform = self.transform
         load_ans = self.load_ans
 
-        reduceImage=True #change to False if want original model
+        reduceImage=False #change to False if want original model
         k=100 #how many singular values 
 
-        image = vqa[idx]['image_path']
-        image = Image.open(image).convert('RGB')
+        image_path = vqa[idx]['image_path']
+        image = Image.open(image_path).convert('RGB')
         if reduceImage:
-          image = cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2RGB)
+          image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
           blue, green, red = cv2.split(image)
 
           bU, bs, bVt = np.linalg.svd(blue, full_matrices=False)
