@@ -7,6 +7,7 @@ import heapq
 import pickle
 import warnings
 warnings.filterwarnings("ignore")
+import logging
 
 nlp = spacy.load('en_core_web_sm')
 
@@ -83,7 +84,8 @@ def main(args):
             similarity = token1.similarity(token2)
             word_index_to_special_index_to_scores[i][special_index] = similarity
         put_word_into_heap(i)
-        print(special_index_to_heap)
+        logging.info(special_index_to_heap)
+        logging.info(i)
         print(i)
     
     with open(args.pickle_file, 'wb') as handle:
@@ -107,7 +109,11 @@ if __name__ == '__main__':
                         help='input directory for visual question answering.')
     parser.add_argument('--pickle_file', type=str, default='/content/data/vocab_questions.txt',
                         help='input directory for visual question answering.')
+    parser.add_argument('--log_file', type=str, default='/content/data/vocab_questions.txt',
+                        help='input directory for visual question answering.')
     
     args = parser.parse_args()
+    
+    logging.basicConfig(filename=args.log_file, encoding='utf-8', level=logging.DEBUG)
     
     main(args)
