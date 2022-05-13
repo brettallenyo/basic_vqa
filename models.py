@@ -65,14 +65,15 @@ class QstEncoder(nn.Module):
             qst_feature = self.tanh(qst_feature)
             qst_feature = self.fc(qst_feature)                            # [batch_size, embed_size]
         else:
-            qst_feature = torch.zeros(1024)
-            for val in question:
-                print(val)
-                if val == 1:
-                    qst_feature[-1] += 1
-                elif val in self.word_index_to_array_index:
-                    qst_feature[self.word_index_to_array_index[val]] += 1
-        qst_feature = qst_feature.repeat(10, 1)
+            qst_feature = torch.zeros(10, 1024)
+            for batch in range(question.shape[0]):
+                new_feature = torch.zeros(1024)
+                for val in question[batch]:
+                    if val == 1:
+                        new_feature[-1] += 1
+                    elif val in self.word_index_to_array_index:
+                        new_feature[self.word_index_to_array_index[val]] += 1
+                qst_feature[batch] = new_feature
 
         return qst_feature
 
