@@ -179,7 +179,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_step', type=int, default=1,
                         help='save step of model.')
     
-    parser.add_argument('--bag_of_words_file', type=int,
+    parser.add_argument('--bag_of_words_file', type=str,
                         help='file that will be used for bag-of-words mapping')
 
     args = parser.parse_args()
