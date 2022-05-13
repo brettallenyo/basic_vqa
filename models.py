@@ -37,36 +37,51 @@ class ImgEncoder(nn.Module):
 
 class QstEncoder(nn.Module):
 
-    def __init__(self, qst_vocab_size, word_embed_size, embed_size, num_layers, hidden_size):
+    def __init__(self, qst_vocab_size, word_embed_size, embed_size, num_layers, hidden_size, bag_of_words_file):
 
         super(QstEncoder, self).__init__()
-        self.word2vec = nn.Embedding(qst_vocab_size, word_embed_size)
-        self.tanh = nn.Tanh()
-        self.lstm = nn.LSTM(word_embed_size, hidden_size, num_layers)
-        self.fc = nn.Linear(2*num_layers*hidden_size, embed_size)     # 2 for hidden and cell states
+        self.bag_of_words_file = bag_of_words_file
+        if bag_of_words_file is None:
+            self.word2vec = nn.Embedding(qst_vocab_size, word_embed_size)
+            self.tanh = nn.Tanh()
+            self.lstm = nn.LSTM(word_embed_size, hidden_size, num_layers)
+            self.fc = nn.Linear(2*num_layers*hidden_size, embed_size)     # 2 for hidden and cell states
+        else:
+            with open(self.bag_of_words_file, 'rb') as handle:
+                self.word_index_to_array_index =  pickle.load(handle)
 
     def forward(self, question):
-
-        qst_vec = self.word2vec(question)                             # [batch_size, max_qst_length=30, word_embed_size=300]
-        qst_vec = self.tanh(qst_vec)
-        qst_vec = qst_vec.transpose(0, 1)                             # [max_qst_length=30, batch_size, word_embed_size=300]
-        _, (hidden, cell) = self.lstm(qst_vec)                        # [num_layers=2, batch_size, hidden_size=512]
-        qst_feature = torch.cat((hidden, cell), 2)                    # [num_layers=2, batch_size, 2*hidden_size=1024]
-        qst_feature = qst_feature.transpose(0, 1)                     # [batch_size, num_layers=2, 2*hidden_size=1024]
-        qst_feature = qst_feature.reshape(qst_feature.size()[0], -1)  # [batch_size, 2*num_layers*hidden_size=2048]
-        qst_feature = self.tanh(qst_feature)
-        qst_feature = self.fc(qst_feature)                            # [batch_size, embed_size]
+        # question is a 30-length tensor
+        
+        if self.bag_of_words_file is None:
+            qst_vec = self.word2vec(question)                             # [batch_size, max_qst_length=30, word_embed_size=300]
+            qst_vec = self.tanh(qst_vec)
+            qst_vec = qst_vec.transpose(0, 1)                             # [max_qst_length=30, batch_size, word_embed_size=300]
+            _, (hidden, cell) = self.lstm(qst_vec)                        # [num_layers=2, batch_size, hidden_size=512]
+            qst_feature = torch.cat((hidden, cell), 2)                    # [num_layers=2, batch_size, 2*hidden_size=1024]
+            qst_feature = qst_feature.transpose(0, 1)                     # [batch_size, num_layers=2, 2*hidden_size=1024]
+            qst_feature = qst_feature.reshape(qst_feature.size()[0], -1)  # [batch_size, 2*num_layers*hidden_size=2048]
+            qst_feature = self.tanh(qst_feature)
+            qst_feature = self.fc(qst_feature)                            # [batch_size, embed_size]
+        else:
+            qst_feature = torch.zeros(1024)
+            for val in question:
+                if val == 1:
+                    qst_feature[-1] += 1
+                elif val in self.word_index_to_array_index:
+                    qst_feature[self.word_index_to_array_index[val]] += 1
+        qst_feature = qst_feature.repeat(10, 1)
 
         return qst_feature
 
 
 class VqaModel(nn.Module):
 
-    def __init__(self, embed_size, qst_vocab_size, ans_vocab_size, word_embed_size, num_layers, hidden_size):
+    def __init__(self, embed_size, qst_vocab_size, ans_vocab_size, word_embed_size, num_layers, hidden_size, bag_of_words_file=None):
 
         super(VqaModel, self).__init__()
         self.img_encoder = ImgEncoder(embed_size)
-        self.qst_encoder = QstEncoder(qst_vocab_size, word_embed_size, embed_size, num_layers, hidden_size)
+        self.qst_encoder = QstEncoder(qst_vocab_size, word_embed_size, embed_size, num_layers, hidden_size, bag_of_words_file)
         self.tanh = nn.Tanh()
         self.dropout = nn.Dropout(0.5)
         self.fc1 = nn.Linear(embed_size, ans_vocab_size)

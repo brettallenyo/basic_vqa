@@ -21,6 +21,7 @@ def main(args):
     
     
     random_indices = random.sample(range(63, len(words)), 1023)
+    logging.info(random_indices)
     
     new_words = {1 : '<unk>'}
     '''
@@ -61,12 +62,12 @@ def main(args):
                 special_index_to_heap[most_similar_special_index] = []
                 heapq.heappush(special_index_to_heap[most_similar_special_index], (similarity, i))
                 not_found = False
-            elif len(special_index_to_heap[most_similar_special_index]) >= 7 and similarity > special_index_to_heap[most_similar_special_index][0][0]:
+            elif len(special_index_to_heap[most_similar_special_index]) >= 50 and similarity > special_index_to_heap[most_similar_special_index][0][0]:
                 index_to_move = heapq.heappop(special_index_to_heap[most_similar_special_index])[1]
                 heapq.heappush(special_index_to_heap[most_similar_special_index], (similarity, i))
                 put_word_into_heap(index_to_move)
                 not_found = False
-            elif len(special_index_to_heap[most_similar_special_index]) < 7:
+            elif len(special_index_to_heap[most_similar_special_index]) < 50:
                 heapq.heappush(special_index_to_heap[most_similar_special_index], (similarity, i))
                 not_found = False
             next_index += 1

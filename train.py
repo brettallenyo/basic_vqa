@@ -36,14 +36,20 @@ def main(args):
         ans_vocab_size=ans_vocab_size,
         word_embed_size=args.word_embed_size,
         num_layers=args.num_layers,
-        hidden_size=args.hidden_size).to(device)
+        hidden_size=args.hidden_size,
+        bag_of_words_file=args.bag_of_words_file).to(device)
 
     criterion = nn.CrossEntropyLoss()
-
+    
     params = list(model.img_encoder.fc.parameters()) \
-        + list(model.qst_encoder.parameters()) \
         + list(model.fc1.parameters()) \
         + list(model.fc2.parameters())
+
+    if args.bag_of_words_file is None:
+        params = list(model.img_encoder.fc.parameters()) \
+            + list(model.qst_encoder.parameters()) \
+            + list(model.fc1.parameters()) \
+            + list(model.fc2.parameters())
 
     optimizer = optim.Adam(params, lr=args.learning_rate)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)
@@ -172,6 +178,9 @@ if __name__ == '__main__':
 
     parser.add_argument('--save_step', type=int, default=1,
                         help='save step of model.')
+    
+    parser.add_argument('--bag_of_words_file', type=int,
+                        help='file that will be used for bag-of-words mapping')
 
     args = parser.parse_args()
 
