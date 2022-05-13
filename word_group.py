@@ -114,6 +114,6 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     
-    logging.basicConfig(filename=args.log_file, encoding='utf-8', level=logging.DEBUG)
+    logging.basicConfig(filename=args.log_file, level=logging.DEBUG)
     
     main(args)
