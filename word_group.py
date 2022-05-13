@@ -5,6 +5,8 @@ import random
 import spacy
 import heapq
 import pickle
+import warnings
+warnings.filterwarnings("ignore")
 
 nlp = spacy.load('en_core_web_sm')
 
