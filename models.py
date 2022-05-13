@@ -67,6 +67,7 @@ class QstEncoder(nn.Module):
         else:
             qst_feature = torch.zeros(1024)
             for val in question:
+                print(val)
                 if val == 1:
                     qst_feature[-1] += 1
                 elif val in self.word_index_to_array_index:
