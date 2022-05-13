@@ -3,6 +3,8 @@ import torch.nn as nn
 import torchvision.models as models
 import pickle5 as pickle
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 class ImgEncoder(nn.Module):
 
@@ -75,7 +77,7 @@ class QstEncoder(nn.Module):
                         new_feature[self.word_index_to_array_index[val]] += 1
                 qst_feature[batch] = new_feature
 
-        return qst_feature
+        return qst_feature.to(device)
 
 
 class VqaModel(nn.Module):
