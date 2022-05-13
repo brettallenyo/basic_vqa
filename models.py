@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
-import pickle
+import pickle5 as pickle
 
 
 class ImgEncoder(nn.Module):
